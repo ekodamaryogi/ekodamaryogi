@@ -4,7 +4,7 @@ import { useCRUD } from '@/hooks/useCRUD';
 import { useAuth } from '@/context/AuthContext';
 import { motion } from 'framer-motion';
 import { Pencil, Trash2, Plus, Briefcase } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import Modal from '@/components/Modal';
 
 export default function ExperiencePage() {
@@ -13,29 +13,151 @@ export default function ExperiencePage() {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditing, setIsEditing] = useState<string | null>(null);
-  const [form, setForm] = useState({ role: '', company: '', period: '', desc: '' });
+  const [form, setForm] = useState({
+    role: '',
+    company: '',
+    startMonth: '01',
+    startYear: new Date().getFullYear().toString(),
+    endMonth: '01',
+    endYear: new Date().getFullYear().toString(),
+    isCurrent: false,
+    desc: ''
+  });
 
   const openAddModal = () => {
     setIsEditing(null);
-    setForm({ role: '', company: '', period: '', desc: '' });
+    setForm({
+      role: '',
+      company: '',
+      startMonth: '01',
+      startYear: new Date().getFullYear().toString(),
+      endMonth: '01',
+      endYear: new Date().getFullYear().toString(),
+      isCurrent: false,
+      desc: ''
+    });
     setIsModalOpen(true);
   };
 
   const openEditModal = (item: any) => {
     setIsEditing(item.id);
-    setForm({ role: item.role, company: item.company, period: item.period, desc: item.desc });
+    let startMonth = '01', startYear = new Date().getFullYear().toString();
+    let endMonth = '01', endYear = new Date().getFullYear().toString();
+    let isCurrent = false;
+
+    try {
+      // Try to parse the JSON format
+      const parsedPeriod = JSON.parse(item.period);
+      if (parsedPeriod.start) {
+        const [y, m] = parsedPeriod.start.split('-');
+        startYear = y;
+        startMonth = m;
+      }
+      if (parsedPeriod.end === 'present') {
+        isCurrent = true;
+      } else if (parsedPeriod.end) {
+        const [y, m] = parsedPeriod.end.split('-');
+        endYear = y;
+        endMonth = m;
+      }
+    } catch (e) {
+      // Fallback if it's the old plain text format
+      console.warn("Legacy period format detected");
+    }
+
+    setForm({
+      role: item.role,
+      company: item.company,
+      startMonth,
+      startYear,
+      endMonth,
+      endYear,
+      isCurrent,
+      desc: item.desc
+    });
     setIsModalOpen(true);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    const periodObj = {
+      start: `${form.startYear}-${form.startMonth}`,
+      end: form.isCurrent ? 'present' : `${form.endYear}-${form.endMonth}`
+    };
+
+    const payload = {
+      role: form.role,
+      company: form.company,
+      period: JSON.stringify(periodObj),
+      desc: form.desc
+    };
+
     if (isEditing) {
-      update(isEditing, form);
+      update(isEditing, payload);
     } else {
-      add(form);
+      add(payload);
     }
     setIsModalOpen(false);
   };
+
+
+
+  // Formatter helper
+  const formatPeriod = (periodStr: string) => {
+    try {
+      const p = JSON.parse(periodStr);
+      const months = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+
+      const formatMonthYear = (dateStr: string) => {
+        if (dateStr === 'present') return 'Sekarang';
+        const [y, m] = dateStr.split('-');
+        return `${months[parseInt(m) - 1]} ${y}`;
+      };
+
+      if (p.start && p.end) {
+        return `${formatMonthYear(p.start)} - ${formatMonthYear(p.end)}`;
+      }
+      return periodStr;
+    } catch(e) {
+      return periodStr; // Legacy text fallback
+    }
+  };
+
+  // Helper to parse period and sort data
+  const sortedData = useMemo(() => {
+    if (!data) return [];
+
+    return [...data].sort((a, b) => {
+      let endA = 0; // default to oldest
+      let endB = 0;
+
+      try {
+        const pA = JSON.parse(a.period);
+        if (pA.end === 'present') {
+          endA = Infinity; // Present is always newest
+        } else if (pA.end) {
+          endA = new Date(`${pA.end}-01`).getTime();
+        }
+      } catch(e) {
+        // Fallback for old text-based data
+      }
+
+      try {
+        const pB = JSON.parse(b.period);
+        if (pB.end === 'present') {
+          endB = Infinity;
+        } else if (pB.end) {
+          endB = new Date(`${pB.end}-01`).getTime();
+        }
+      } catch(e) {
+        // Fallback
+      }
+
+      // Sort descending (newest first)
+      return endB - endA;
+    });
+  }, [data]);
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="w-full mt-8 max-w-4xl mx-auto">
@@ -54,7 +176,7 @@ export default function ExperiencePage() {
       {isLoading && <p className="text-gray-500 text-center py-8">Loading data...</p>}
 
       <div className="relative border-l border-blue-200 dark:border-cyber-blue/30 ml-4 md:ml-6 space-y-12">
-        {!isLoading && data.map((exp, index) => (
+        {!isLoading && sortedData.map((exp, index) => (
           <motion.div
             key={exp.id}
             initial={{ opacity: 0, x: -20 }}
@@ -75,7 +197,7 @@ export default function ExperiencePage() {
                   <h4 className="text-blue-600/80 dark:text-cyber-blue/80 font-medium">{exp.company}</h4>
                 </div>
                 <span className="text-sm font-semibold bg-blue-50 dark:bg-cyber-blue/10 border border-blue-200 dark:border-cyber-blue/20 px-3 py-1 rounded-full text-blue-600 dark:text-cyber-blue mt-2 md:mt-0 whitespace-nowrap font-mono">
-                  {exp.period}
+                  {formatPeriod(exp.period)}
                 </span>
               </div>
               <p className="text-gray-600 dark:text-gray-400 leading-relaxed text-sm md:text-base whitespace-pre-wrap">
@@ -114,14 +236,78 @@ export default function ExperiencePage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1 dark:text-gray-300">Period</label>
-            <input
-              required
-              className="w-full bg-gray-100 dark:bg-black/20 border border-gray-300 dark:border-white/10 p-3 rounded-xl text-gray-900 dark:text-white"
-              value={form.period}
-              onChange={e => setForm({...form, period: e.target.value})}
-              placeholder="e.g. 2020 - 2022"
-            />
+            <label className="block text-sm font-medium mb-1 dark:text-gray-300">Start Date</label>
+            <div className="flex gap-2">
+              <select
+                className="w-full bg-gray-100 dark:bg-black/20 border border-gray-300 dark:border-white/10 p-3 rounded-xl text-gray-900 dark:text-white"
+                value={form.startMonth}
+                onChange={e => setForm({...form, startMonth: e.target.value})}
+              >
+                <option value="01">Januari</option>
+                <option value="02">Februari</option>
+                <option value="03">Maret</option>
+                <option value="04">April</option>
+                <option value="05">Mei</option>
+                <option value="06">Juni</option>
+                <option value="07">Juli</option>
+                <option value="08">Agustus</option>
+                <option value="09">September</option>
+                <option value="10">Oktober</option>
+                <option value="11">November</option>
+                <option value="12">Desember</option>
+              </select>
+              <input
+                type="number"
+                required
+                className="w-full bg-gray-100 dark:bg-black/20 border border-gray-300 dark:border-white/10 p-3 rounded-xl text-gray-900 dark:text-white"
+                value={form.startYear}
+                onChange={e => setForm({...form, startYear: e.target.value})}
+                placeholder="Year (e.g. 2020)"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1 dark:text-gray-300">End Date</label>
+            <div className="flex gap-2 mb-2 items-center">
+              <input
+                type="checkbox"
+                id="isCurrent"
+                checked={form.isCurrent}
+                onChange={e => setForm({...form, isCurrent: e.target.checked})}
+                className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+              />
+              <label htmlFor="isCurrent" className="text-sm font-medium dark:text-gray-300 cursor-pointer">Sekarang (Present)</label>
+            </div>
+            {!form.isCurrent && (
+              <div className="flex gap-2">
+                <select
+                  className="w-full bg-gray-100 dark:bg-black/20 border border-gray-300 dark:border-white/10 p-3 rounded-xl text-gray-900 dark:text-white"
+                  value={form.endMonth}
+                  onChange={e => setForm({...form, endMonth: e.target.value})}
+                >
+                  <option value="01">Januari</option>
+                  <option value="02">Februari</option>
+                  <option value="03">Maret</option>
+                  <option value="04">April</option>
+                  <option value="05">Mei</option>
+                  <option value="06">Juni</option>
+                  <option value="07">Juli</option>
+                  <option value="08">Agustus</option>
+                  <option value="09">September</option>
+                  <option value="10">Oktober</option>
+                  <option value="11">November</option>
+                  <option value="12">Desember</option>
+                </select>
+                <input
+                  type="number"
+                  required={!form.isCurrent}
+                  className="w-full bg-gray-100 dark:bg-black/20 border border-gray-300 dark:border-white/10 p-3 rounded-xl text-gray-900 dark:text-white"
+                  value={form.endYear}
+                  onChange={e => setForm({...form, endYear: e.target.value})}
+                  placeholder="Year (e.g. 2023)"
+                />
+              </div>
+            )}
           </div>
           <div>
             <label className="block text-sm font-medium mb-1 dark:text-gray-300">Description</label>
