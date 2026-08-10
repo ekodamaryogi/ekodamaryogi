@@ -36,7 +36,7 @@ export default function Navbar() {
         {/* Profile Info */}
         <Link href="/" className="flex items-center gap-3 group">
           <div className="w-10 h-10 rounded-full bg-gray-100 dark:bg-cyber-dark flex items-center justify-center text-sm font-bold text-gray-900 dark:text-white border-2 border-gray-300 dark:border-cyber-blue/50 group-hover:border-blue-500 dark:group-hover:border-cyber-blue dark:group-hover:shadow-cyber transition-all overflow-hidden">
-            <img src="/profile.jpg" alt="Profile" className="w-full h-full object-cover" />
+            <img src="/profile.png" alt="Profile" className="w-full h-full object-cover" />
           </div>
           <span className="font-mono font-bold tracking-wider hidden md:block text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-cyber-blue transition-colors">
             Eko Damar Yogi
