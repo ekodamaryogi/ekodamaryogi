@@ -1,0 +1,62 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #f0f4f8; /* Light Mode: Very Light Blue-Gray */
+  --foreground: #0f172a; /* Slate 900 */
+}
+
+.dark {
+  --background: #000000; /* Deep Black Base */
+  --foreground: #e2e8f0; /* Slate 200 */
+}
+
+body {
+  color: var(--foreground);
+  background-color: var(--background);
+  transition: background-color 0.3s ease, color 0.3s ease;
+  font-family: 'Inter', sans-serif;
+  overflow-x: hidden;
+  /* Light Mode Background with subtle grid */
+  background-image:
+    linear-gradient(rgba(240, 244, 248, 0.8), rgba(240, 244, 248, 0.8)),
+    linear-gradient(to right, rgba(0, 0, 0, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.05) 1px, transparent 1px);
+  background-size: 100% 100%, 50px 50px, 50px 50px;
+  background-attachment: fixed;
+}
+
+.dark body {
+  /* Dark Mode Background: Black to Dark Blue Gradient + Cyber Grid */
+  background-image:
+    linear-gradient(135deg, rgba(0,0,0,0.95) 0%, rgba(4, 20, 48, 0.95) 100%),
+    linear-gradient(to right, rgba(0, 240, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0, 240, 255, 0.05) 1px, transparent 1px);
+  background-size: 100% 100%, 50px 50px, 50px 50px;
+  background-attachment: fixed;
+}
+
+@layer utilities {
+  .glass {
+    @apply bg-white/70 dark:bg-black/60 backdrop-blur-md border border-gray-200 dark:border-cyber-blue/20 shadow-lg;
+  }
+
+  .glass-card {
+    @apply bg-white/60 dark:bg-black/40 backdrop-blur-sm border border-gray-200 dark:border-white/5 rounded-2xl transition-all duration-300;
+  }
+
+  .glass-card:hover {
+    @apply bg-white/90 dark:bg-cyber-accent/30 border-blue-400/50 dark:border-cyber-blue/30 transform -translate-y-1 shadow-lg dark:shadow-cyber-hover;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-gray-300 dark:bg-gray-600 rounded-full;
+  }
+}
