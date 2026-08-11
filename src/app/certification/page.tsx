@@ -135,7 +135,7 @@ export default function CertificationPage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1 dark:text-gray-300">Issuer</label>
+            <label className="block text-sm font-medium mb-1 dark:text-gray-300">Credential ID</label>
             <input
               required
               className="w-full bg-gray-100 dark:bg-black/20 border border-gray-300 dark:border-white/10 p-3 rounded-xl text-gray-900 dark:text-white"
