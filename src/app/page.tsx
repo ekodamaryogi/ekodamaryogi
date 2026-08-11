@@ -77,7 +77,7 @@ export default function Home() {
         </motion.h2>
 
         <motion.p variants={fadeUp} className="text-gray-600 dark:text-gray-300 text-base md:text-lg leading-relaxed max-w-2xl mb-8">
-          Mathematics graduate with a strong motivation and interest in data processing and analysis. Possesses strong and systematic analytical and problem-solving skills, with the ability to adapt to dynamic work environments and collaborate effectively within a team. Experienced in developing reports and dashboards to support data-driven decision-making, with skills in data entry, data validation, data analysis, and data visualization.
+          Mathematics graduate with a strong interest in data processing and analysis. Possesses strong and systematic analytical and problem-solving skills, with the ability to adapt to dynamic work environments and collaborate effectively within a team. Experienced in data processing, analysis, visualization, and dashboard development to support data-driven decision-making.
         </motion.p>
 
         <motion.div variants={fadeUp} className="flex gap-4 mb-16">
