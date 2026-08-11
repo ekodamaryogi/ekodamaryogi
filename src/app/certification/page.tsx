@@ -78,7 +78,7 @@ export default function CertificationPage() {
           >
             {cert.image_url && (
                <div className="h-40 w-full bg-gray-200 dark:bg-white/5 relative border-b border-gray-300 dark:border-white/10 flex items-center justify-center overflow-hidden">
-                 <img src={cert.image_url} alt={cert.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                 <img src={cert.image_url} alt={cert.name} className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-110" />
                  <div className="absolute inset-0 bg-blue-100/30 dark:bg-blue-900/10 group-hover:bg-transparent transition-colors duration-500" />
                </div>
             )}
