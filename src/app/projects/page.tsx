@@ -80,7 +80,7 @@ export default function ProjectsPage() {
             <div className="h-48 w-full bg-gray-100 dark:bg-cyber-dark/50 relative border-b border-gray-200 dark:border-white/5 flex items-center justify-center overflow-hidden">
               {project.image_url ? (
                 <>
-                  <img src={project.image_url} alt={project.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 opacity-80 group-hover:opacity-100" />
+                  <img src={project.image_url} alt={project.title} className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-110 opacity-80 group-hover:opacity-100" />
                   <div className="absolute inset-0 bg-blue-500/10 dark:bg-cyber-blue/10 opacity-0 group-hover:opacity-100 transition-opacity mix-blend-overlay" />
                 </>
               ) : (
