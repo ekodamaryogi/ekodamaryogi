@@ -22,6 +22,12 @@ CREATE TABLE public.projects (
   title text NOT NULL,
   "desc" text NOT NULL,
   link text NOT NULL,
+  links jsonb DEFAULT '[]'::jsonb,
+  project_date text,
+  category text,
+  tools text,
+  role text,
+  project_type text,
   image_url text,
   created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL
 );
