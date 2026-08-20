@@ -63,7 +63,7 @@ export default function Home() {
           transition={{ type: "spring", stiffness: 300, damping: 20 }}
           className="relative w-32 h-32 md:w-40 md:h-40 mb-6 rounded-full overflow-hidden border-4 border-gray-200 dark:border-white/10 shadow-2xl hover:shadow-cyber-hover transition-shadow duration-300 cursor-pointer"
         >
-          <img src="/profile.png" alt="Eko Damar Yogi" className="w-full h-full object-cover" />
+          <img src="/6e3b9488-9a65-4db7-826a-6c78895cde70.jpg" alt="Eko Damar Yogi" className="w-full h-full object-cover" />
         </motion.div>
 
 
