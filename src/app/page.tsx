@@ -2,12 +2,16 @@
 
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import { Linkedin, Github, Mail, Instagram, ChevronRight, Download, Pencil, File as FileIcon } from 'lucide-react';
+import { Linkedin, Github, Mail, Instagram, Download, Pencil, File as FileIcon } from 'lucide-react';
 import Image from 'next/image';
 import { useAuth } from '@/context/AuthContext';
 import { useCRUD } from '@/hooks/useCRUD';
 import { useState, useRef } from 'react';
 import Modal from '@/components/Modal';
+import SkillSection from '@/components/SkillSection';
+import ExperienceSection from '@/components/ExperienceSection';
+import ProjectsSection from '@/components/ProjectsSection';
+import CertificationSection from '@/components/CertificationSection';
 
 const fadeUp = {
   initial: { opacity: 0, y: 20 },
@@ -46,10 +50,11 @@ export default function Home() {
   };
 
   return (
-    <div className="flex flex-col items-center max-w-3xl mx-auto w-full">
+    <div className="flex flex-col items-center w-full">
 
       {/* Hero Section */}
-      <motion.div
+      <motion.section
+        id="home"
         initial="initial"
         animate="animate"
         variants={{
@@ -96,45 +101,15 @@ export default function Home() {
             </Link>
           ))}
         </motion.div>
-      </motion.div>
+      </motion.section>
 
-      {/* Get to know me */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        whileInView={{ opacity: 1 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.8 }}
-        className="w-full mb-16"
-      >
-        <div className="flex items-center gap-4 mb-8">
-          <div className="h-px bg-gray-300 dark:bg-cyber-blue/30 flex-grow"></div>
-          <h3 className="text-2xl font-semibold tracking-wide text-gray-800 dark:text-white">Get to know me</h3>
-          <div className="h-px bg-gray-300 dark:bg-cyber-blue/30 flex-grow"></div>
-        </div>
-
-        <p className="text-center text-gray-500 dark:text-gray-400 mb-8 max-w-xl mx-auto">
-          Explore my background, technical expertise, past projects, and academic certifications.
-        </p>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-12">
-          {[
-            { name: 'Skill', path: '/skill' },
-            { name: 'Experience', path: '/experience' },
-            { name: 'Projects', path: '/projects' },
-            { name: 'Certification', path: '/certification' }
-          ].map((item) => (
-            <Link
-              key={item.name}
-              href={item.path}
-              className="glass-card p-6 flex items-center justify-between group"
-            >
-              <span className="text-lg font-medium text-gray-800 dark:text-gray-100 group-hover:text-cyber-blue dark:group-hover:text-cyber-blue transition-colors">{item.name}</span>
-              <ChevronRight className="text-gray-400 dark:text-gray-500 group-hover:text-cyber-blue dark:group-hover:text-cyber-blue transform group-hover:translate-x-1 transition-all" />
-            </Link>
-          ))}
-        </div>
-
-      </motion.div>
+      {/* Sections */}
+      <div className="w-full max-w-5xl mx-auto flex flex-col gap-12">
+        <SkillSection />
+        <ExperienceSection />
+        <ProjectsSection />
+        <CertificationSection />
+      </div>
 
       {/* Download CV Section at Bottom */}
       <motion.div

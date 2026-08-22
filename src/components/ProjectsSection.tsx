@@ -7,7 +7,7 @@ import { Pencil, Trash2, Plus, ExternalLink, Image as ImageIcon } from 'lucide-r
 import { useState } from 'react';
 import Modal from '@/components/Modal';
 
-export default function ProjectsPage() {
+export default function ProjectsSection() {
   const { data, add, remove, update, uploadImage, isLoading } = useCRUD<{id: string, title: string, desc: string, link: string, image_url?: string}>('projects');
   const { isAdmin } = useAuth();
 
@@ -51,7 +51,7 @@ export default function ProjectsPage() {
   };
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="w-full mt-8">
+    <motion.section id="projects" initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} className="w-full pt-20 mt-8 scroll-mt-24">
       <div className="flex justify-between items-center mb-8 border-b border-gray-200 dark:border-cyber-blue/30 pb-4">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
           <span className="w-2 h-8 bg-cyber-blue rounded-full"></span>
@@ -161,6 +161,6 @@ export default function ProjectsPage() {
           </button>
         </form>
       </Modal>
-    </motion.div>
+    </motion.section>
   );
 }
