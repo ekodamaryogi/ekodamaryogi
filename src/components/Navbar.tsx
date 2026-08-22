@@ -8,11 +8,11 @@ import { Moon, Sun, Menu, X } from 'lucide-react';
 import { useEffect, useState, useRef } from 'react';
 
 const navItems = [
-  { name: 'Home', path: '/' },
-  { name: 'Skill', path: '/skill' },
-  { name: 'Experience', path: '/experience' },
-  { name: 'Projects', path: '/projects' },
-  { name: 'Certification', path: '/certification' },
+  { name: 'Home', path: '#home' },
+  { name: 'Skill', path: '#skill' },
+  { name: 'Experience', path: '#experience' },
+  { name: 'Projects', path: '#projects' },
+  { name: 'Certification', path: '#certification' },
 ];
 
 export default function Navbar() {
@@ -20,6 +20,7 @@ export default function Navbar() {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState('#home');
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -35,7 +36,49 @@ export default function Navbar() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  if (pathname === '/') return null;
+  useEffect(() => {
+    const handleScroll = () => {
+      const sections = navItems.map(item => item.path.substring(1));
+
+      let currentActive = activeSection;
+
+      for (const section of sections) {
+        const element = document.getElementById(section);
+        if (element) {
+          const rect = element.getBoundingClientRect();
+          // Adjust this threshold as needed based on header height
+          if (rect.top <= 150 && rect.bottom >= 150) {
+            currentActive = `#${section}`;
+            break;
+          }
+        }
+      }
+
+      if (currentActive !== activeSection) {
+        setActiveSection(currentActive);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [activeSection]);
+
+  if (pathname !== '/') return null; // Show only on main page
+
+  const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, path: string) => {
+    e.preventDefault();
+    setIsMobileMenuOpen(false);
+
+    const targetId = path.substring(1);
+    const element = document.getElementById(targetId);
+
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+      // We also update URL hash without jump
+      window.history.pushState(null, '', path);
+      setActiveSection(path);
+    }
+  };
 
   return (
     <nav className="sticky top-0 z-50 w-full flex justify-center pt-6 px-4 mb-8">
@@ -57,11 +100,12 @@ export default function Navbar() {
         {/* Links Desktop */}
         <div className="hidden md:flex item-center justify-center gap-0.5 lg:gap-1 flex-1 min-w-0 overflow-hidden">
           {navItems.map((item) => {
-            const isActive = pathname === item.path;
+            const isActive = activeSection === item.path;
             return (
-              <Link
+              <a
                 key={item.name}
                 href={item.path}
+                onClick={(e) => handleNavClick(e, item.path)}
                 className={`relative px-3 py-2 rounded-full text-sm font-medium transition-colors whitespace-nowrap font-mono ${
                   isActive ? 'text-cyber-blue shadow-[0_0_10px_rgba(0,240,255,0.3)] bg-cyber-blue/10' : 'text-gray-400 hover:text-cyber-blue'
                 }`}
@@ -74,20 +118,21 @@ export default function Navbar() {
                   />
                 )}
                 <span className="relative z-10">{item.name}</span>
-              </Link>
+              </a>
             );
           })}
         </div>
 
         {/* Home Link Mobile */}
         <div className="flex md:hidden item-center justify-center flex-1 min-w-0">
-           <Link
-              href="/"
+           <a
+              href="#home"
+              onClick={(e) => handleNavClick(e, '#home')}
               className={`relative px-3 py-2 rounded-full text-sm font-medium transition-colors whitespace-nowrap font-mono ${
-                pathname === '/' ? 'text-cyber-blue shadow-[0_0_10px_rgba(0,240,255,0.3)] bg-cyber-blue/10' : 'text-gray-400 hover:text-cyber-blue'
+                activeSection === '#home' ? 'text-cyber-blue shadow-[0_0_10px_rgba(0,240,255,0.3)] bg-cyber-blue/10' : 'text-gray-400 hover:text-cyber-blue'
               }`}
             >
-              {pathname === '/' && (
+              {activeSection === '#home' && (
                 <motion.div
                   layoutId="active-pill-mobile"
                   className="absolute inset-0 bg-cyber-blue/10 border border-cyber-blue/30 rounded-full"
@@ -95,7 +140,7 @@ export default function Navbar() {
                 />
               )}
               <span className="relative z-10">Home</span>
-            </Link>
+            </a>
         </div>
 
         {/* Right Section (Theme Toggle & Mobile Menu) */}
@@ -129,18 +174,18 @@ export default function Navbar() {
                 className="absolute top-full right-0 mt-4 py-2 w-48 glass rounded-2xl border border-cyber-blue/30 shadow-[0_0_15px_rgba(0,240,255,0.15)] flex flex-col md:hidden"
               >
                 {navItems.filter(item => item.name !== 'Home').map((item) => {
-                  const isActive = pathname === item.path;
+                  const isActive = activeSection === item.path;
                   return (
-                    <Link
+                    <a
                       key={item.name}
                       href={item.path}
-                      onClick={() => setIsMobileMenuOpen(false)}
+                      onClick={(e) => handleNavClick(e, item.path)}
                       className={`px-4 py-3 text-sm font-medium transition-colors font-mono hover:bg-cyber-blue/10 ${
                         isActive ? 'text-cyber-blue' : 'text-gray-900 dark:text-gray-300 dark:hover:text-cyber-blue'
                       }`}
                     >
                       {item.name}
-                    </Link>
+                    </a>
                   );
                 })}
               </motion.div>
