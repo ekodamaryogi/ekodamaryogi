@@ -7,7 +7,7 @@ import { Pencil, Trash2, Plus } from 'lucide-react';
 import { useState } from 'react';
 import Modal from '@/components/Modal';
 
-export default function SkillPage() {
+export default function SkillSection() {
   const { data, add, remove, update, isLoading } = useCRUD<{id: string, name: string, level: string}>('skills');
   const { isAdmin } = useAuth();
 
@@ -38,7 +38,7 @@ export default function SkillPage() {
   };
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="w-full mt-8">
+    <motion.section id="skill" initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} className="w-full pt-20 mt-8 scroll-mt-24">
       <div className="flex justify-between items-center mb-8 border-b border-gray-200 dark:border-cyber-blue/30 pb-4">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
           <span className="w-2 h-8 bg-cyber-blue rounded-full"></span>
@@ -103,6 +103,6 @@ export default function SkillPage() {
           </button>
         </form>
       </Modal>
-    </motion.div>
+    </motion.section>
   );
 }
