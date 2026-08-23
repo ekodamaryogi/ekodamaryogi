@@ -7,24 +7,36 @@ import { Pencil, Trash2, Plus, ExternalLink, Image as ImageIcon } from 'lucide-r
 import { useState } from 'react';
 import Modal from '@/components/Modal';
 
+export type ProjectLink = { name: string; url: string };
+
 export default function ProjectsSection() {
-  const { data, add, remove, update, uploadImage, isLoading } = useCRUD<{id: string, title: string, desc: string, link: string, image_url?: string}>('projects');
+  const { data, add, remove, update, uploadImage, isLoading } = useCRUD<{id: string, title: string, desc: string, link?: string, links: ProjectLink[], image_url?: string}>('projects');
   const { isAdmin } = useAuth();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditing, setIsEditing] = useState<string | null>(null);
-  const [form, setForm] = useState({ title: '', desc: '', link: '', image_url: '' });
+  const [form, setForm] = useState<{title: string, desc: string, links: ProjectLink[], image_url: string}>({ title: '', desc: '', links: [{name: 'View Project', url: ''}], image_url: '' });
   const [isUploading, setIsUploading] = useState(false);
+
+  // State for project detail popup
+  const [selectedProject, setSelectedProject] = useState<any>(null);
 
   const openAddModal = () => {
     setIsEditing(null);
-    setForm({ title: '', desc: '', link: '', image_url: '' });
+    setForm({ title: '', desc: '', links: [{name: 'View Project', url: ''}], image_url: '' });
     setIsModalOpen(true);
   };
 
   const openEditModal = (item: any) => {
     setIsEditing(item.id);
-    setForm({ title: item.title, desc: item.desc, link: item.link, image_url: item.image_url || '' });
+    let initialLinks = item.links || [];
+    // Fallback for older records that only had `link`
+    if (initialLinks.length === 0 && item.link) {
+      initialLinks = [{ name: 'View Project', url: item.link }];
+    } else if (initialLinks.length === 0) {
+      initialLinks = [{ name: 'View Project', url: '' }];
+    }
+    setForm({ title: item.title, desc: item.desc, links: initialLinks, image_url: item.image_url || '' });
     setIsModalOpen(true);
   };
 
@@ -42,12 +54,33 @@ export default function ProjectsSection() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    // Filter out empty links before saving
+    const cleanedForm = {
+      ...form,
+      links: form.links.filter(l => l.name.trim() !== '' && l.url.trim() !== '')
+    };
+
     if (isEditing) {
-      update(isEditing, form);
+      update(isEditing, cleanedForm);
     } else {
-      add(form);
+      add(cleanedForm);
     }
     setIsModalOpen(false);
+  };
+
+  const handleLinkChange = (index: number, field: 'name' | 'url', value: string) => {
+    const newLinks = [...form.links];
+    newLinks[index][field] = value;
+    setForm({ ...form, links: newLinks });
+  };
+
+  const addLinkField = () => {
+    setForm({ ...form, links: [...form.links, { name: '', url: '' }] });
+  };
+
+  const removeLinkField = (index: number) => {
+    const newLinks = form.links.filter((_, i) => i !== index);
+    setForm({ ...form, links: newLinks });
   };
 
   return (
@@ -88,18 +121,22 @@ export default function ProjectsSection() {
               )}
             </div>
 
-            <div className="p-6 flex flex-col flex-grow bg-white/40 dark:bg-cyber-dark/40 group-hover:bg-blue-50/50 dark:group-hover:bg-cyber-accent/30 transition-colors">
+            <div className="p-6 flex flex-col flex-grow bg-white/40 dark:bg-cyber-dark/40 group-hover:bg-blue-50/50 dark:group-hover:bg-cyber-accent/30 transition-colors cursor-pointer" onClick={() => setSelectedProject(project)}>
               <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 group-hover:text-blue-600 dark:group-hover:text-cyber-blue transition-colors">{project.title}</h3>
               <p className="text-gray-600 dark:text-gray-400 text-sm mb-6 flex-grow line-clamp-3">{project.desc}</p>
 
-              <div className="flex justify-between items-center mt-auto pt-4 border-t border-gray-200 dark:border-white/5">
-                <a href={project.link} target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-cyber-blue hover:text-blue-800 dark:hover:text-cyber-blue/80 dark:hover:shadow-cyber text-sm font-medium flex items-center gap-1 transition-all">
-                  View Project <ExternalLink size={14} />
-                </a>
+              <div className="flex flex-col gap-4 mt-auto pt-4 border-t border-gray-200 dark:border-white/5">
+                <div className="flex flex-wrap gap-x-4 gap-y-2">
+                  {(project.links?.length > 0 ? project.links : (project.link ? [{name: 'View Project', url: project.link}] : [])).map((link, idx) => (
+                    <a key={idx} href={link.url} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} className="text-blue-600 dark:text-cyber-blue hover:text-blue-800 dark:hover:text-cyber-blue/80 dark:hover:shadow-cyber text-sm font-medium flex items-center gap-1 transition-all whitespace-nowrap">
+                      {link.name} <ExternalLink size={14} />
+                    </a>
+                  ))}
+                </div>
                 {isAdmin && (
-                  <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button onClick={() => openEditModal(project)} className="p-1.5 hover:bg-blue-100 dark:hover:bg-cyber-blue/20 rounded-lg text-gray-500 hover:text-blue-600 dark:hover:text-cyber-blue transition-colors"><Pencil size={14}/></button>
-                    <button onClick={() => remove(project.id)} className="p-1.5 hover:bg-red-100 dark:hover:bg-red-500/20 text-gray-500 hover:text-red-500 dark:hover:text-red-400 rounded-lg transition-colors"><Trash2 size={14}/></button>
+                  <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity justify-end">
+                    <button onClick={(e) => { e.stopPropagation(); openEditModal(project); }} className="p-1.5 hover:bg-blue-100 dark:hover:bg-cyber-blue/20 rounded-lg text-gray-500 hover:text-blue-600 dark:hover:text-cyber-blue transition-colors"><Pencil size={14}/></button>
+                    <button onClick={(e) => { e.stopPropagation(); remove(project.id); }} className="p-1.5 hover:bg-red-100 dark:hover:bg-red-500/20 text-gray-500 hover:text-red-500 dark:hover:text-red-400 rounded-lg transition-colors"><Trash2 size={14}/></button>
                   </div>
                 )}
               </div>
@@ -138,14 +175,38 @@ export default function ProjectsSection() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1 dark:text-gray-300">Link URL</label>
-            <input
-              required
-              className="w-full bg-gray-100 dark:bg-black/20 border border-gray-300 dark:border-white/10 p-3 rounded-xl text-gray-900 dark:text-white"
-              value={form.link}
-              onChange={e => setForm({...form, link: e.target.value})}
-              placeholder="https://..."
-            />
+            <label className="block text-sm font-medium mb-2 dark:text-gray-300">Project Links</label>
+            <div className="flex flex-col gap-3">
+              {form.links.map((link, index) => (
+                <div key={index} className="flex gap-2 items-start">
+                  <div className="flex-grow grid grid-cols-2 gap-2">
+                    <input
+                      required={index === 0}
+                      className="w-full bg-gray-100 dark:bg-black/20 border border-gray-300 dark:border-white/10 p-3 rounded-xl text-gray-900 dark:text-white"
+                      value={link.name}
+                      onChange={e => handleLinkChange(index, 'name', e.target.value)}
+                      placeholder="e.g. View Project, GitHub"
+                    />
+                    <input
+                      required={index === 0}
+                      type="url"
+                      className="w-full bg-gray-100 dark:bg-black/20 border border-gray-300 dark:border-white/10 p-3 rounded-xl text-gray-900 dark:text-white"
+                      value={link.url}
+                      onChange={e => handleLinkChange(index, 'url', e.target.value)}
+                      placeholder="https://..."
+                    />
+                  </div>
+                  {form.links.length > 1 && (
+                    <button type="button" onClick={() => removeLinkField(index)} className="p-3 text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl transition-colors shrink-0">
+                      <Trash2 size={18} />
+                    </button>
+                  )}
+                </div>
+              ))}
+              <button type="button" onClick={addLinkField} className="self-start text-sm font-medium text-blue-600 dark:text-cyber-blue hover:underline flex items-center gap-1 mt-1">
+                <Plus size={14} /> Tambahkan Link
+              </button>
+            </div>
           </div>
           <div>
             <label className="block text-sm font-medium mb-1 dark:text-gray-300">Description</label>
@@ -161,6 +222,37 @@ export default function ProjectsSection() {
           </button>
         </form>
       </Modal>
+
+      {/* Project Detail Modal */}
+      <Modal isOpen={!!selectedProject} onClose={() => setSelectedProject(null)} title="Project Details">
+        {selectedProject && (
+          <div className="flex flex-col gap-6">
+            {selectedProject.image_url && (
+              <div className="w-full bg-gray-100 dark:bg-cyber-dark/50 rounded-xl overflow-hidden flex items-center justify-center border border-gray-200 dark:border-white/5 relative h-64 md:h-80">
+                <img src={selectedProject.image_url} alt={selectedProject.title} className="w-full h-full object-contain" />
+              </div>
+            )}
+
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">{selectedProject.title}</h2>
+              <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-relaxed">{selectedProject.desc}</p>
+            </div>
+
+            <div className="pt-4 border-t border-gray-200 dark:border-white/10 flex flex-col gap-3">
+              <h4 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Project Links</h4>
+              <div className="flex flex-wrap gap-4">
+                {(selectedProject.links?.length > 0 ? selectedProject.links : (selectedProject.link ? [{name: 'View Project', url: selectedProject.link}] : [])).map((link: ProjectLink, idx: number) => (
+                  <a key={idx} href={link.url} target="_blank" rel="noopener noreferrer" className="group flex items-center gap-2 bg-blue-50 hover:bg-blue-100 dark:bg-cyber-blue/10 dark:hover:bg-cyber-blue/20 text-blue-600 dark:text-cyber-blue border border-blue-200 dark:border-cyber-blue/30 px-4 py-2 rounded-lg transition-all dark:hover:shadow-cyber">
+                    <span className="font-medium">{link.name}</span>
+                    <ExternalLink size={16} className="transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                  </a>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+      </Modal>
+
     </motion.section>
   );
 }

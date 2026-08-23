@@ -21,10 +21,15 @@ CREATE TABLE public.projects (
   id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
   title text NOT NULL,
   "desc" text NOT NULL,
-  link text NOT NULL,
+  link text,
+  links jsonb DEFAULT '[]'::jsonb,
   image_url text,
   created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL
 );
+
+-- Migration for existing data (run manually in Supabase SQL editor if needed)
+-- UPDATE public.projects SET links = jsonb_build_array(jsonb_build_object('name', 'View Project', 'url', link)) WHERE link IS NOT NULL;
+-- ALTER TABLE public.projects DROP COLUMN link;
 
 CREATE TABLE public.certifications (
   id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
