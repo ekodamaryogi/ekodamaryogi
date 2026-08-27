@@ -88,9 +88,9 @@ export default function Home() {
 
         <motion.div variants={fadeUp} className="flex gap-4 mb-8">
           {[
-            { icon: Linkedin, href: '#', glowClass: 'hover:neon-glow-cyan hover:border-cyan-400' },
-            { icon: Github, href: '#', glowClass: 'hover:neon-glow-violet hover:border-purple-400' },
-            { icon: Instagram, href: '#', glowClass: 'hover:neon-glow-magenta hover:border-pink-400' },
+            { icon: Linkedin, href: 'https://www.linkedin.com/in/eko-damar-yogi/', glowClass: 'hover:neon-glow-cyan hover:border-cyan-400' },
+            { icon: Github, href: 'https://github.com/ekodamaryogi', glowClass: 'hover:neon-glow-violet hover:border-purple-400' },
+            { icon: Instagram, href: 'https://www.instagram.com/eko.d.y_', glowClass: 'hover:neon-glow-magenta hover:border-pink-400' },
             { icon: Mail, href: 'mailto:eko@example.com', glowClass: 'hover:neon-glow-amber hover:border-amber-400' }
           ].map((social, i) => (
             <Link
